@@ -9,7 +9,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma)](https://www.prisma.io)
 [![Bun](https://img.shields.io/badge/Bun-1.3-f472b6?logo=bun)](https://bun.sh)
-[![tests](https://img.shields.io/badge/tests-18%20passing-10b981)](../../actions)
+[![tests](https://img.shields.io/badge/tests-29%20passing-10b981)](../../actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
 ![Обзор дома](docs/screenshots/overview.png)
@@ -73,7 +73,8 @@
 - **Prisma 6 + SQLite** — ноль внешних зависимостей, дом живёт в одном файле
 - **Bun** — установка, запуск, тесты
 - **Vitest** — юнит-тесты чистой логики
-- **GitHub Actions** — линт, типы, тесты и сборка на каждый коммит
+- **GitHub Actions** — линт, типы, тесты и сборка на каждый коммит; actions запинены по хешам, права минимальны
+- **Dependabot** — еженедельный дозор зависимостей и workflow-экшенов
 
 ## Быстрый старт
 
@@ -116,6 +117,7 @@ src/
 ├── hooks/use-house.ts     # данные + мутации с авто-обновлением
 └── lib/
     ├── home-index.ts      # чистая логика индекса (под тестами)
+    ├── csv.ts             # чистая логика CSV-экспорта (под тестами)
     ├── house.ts           # сид и сводка по дому
     ├── types.ts           # справочники и DTO
     └── db.ts              # Prisma client
@@ -134,6 +136,7 @@ prisma/schema.prisma       # Room / Task / Expense / Setting
 | GET/POST | `/api/rooms` | Список / создание комнат |
 | PATCH/DELETE | `/api/rooms/[id]` | Переименование / удаление |
 | GET/POST | `/api/expenses` | Список / добавление трат |
+| GET | `/api/expenses/export` | Журнал трат в CSV (Excel-дружелюбный: BOM + «;») |
 | DELETE | `/api/expenses/[id]` | Удаление траты |
 | GET/PUT | `/api/settings` | Месячный бюджет |
 
@@ -147,12 +150,13 @@ prisma/schema.prisma       # Room / Task / Expense / Setting
 4. **Логика отделена от интерфейса** — формулы живёт в `lib/` и покрыта тестами.
 5. **Пользователь не должен догадываться** — русские тексты, тосты, скелетоны, состояния ошибок.
 6. **Дома и на телефоне одинаково уютно** — адаптив обязательный.
+7. **Пайплайн под замком** — actions запинены по хешам коммитов (тег подделать можно, хеш — нет), права workflow-токена минимальны (`contents: read`), время джобы ограничено, зависимостями еженедельно занимается Dependabot.
 
 ## Дорожная карта
 
 - [ ] Регулярные дела (расписание уборок)
 - [ ] Инвентарь дома с фото чеков
-- [ ] Экспорт расходов в CSV
+- [x] Экспорт расходов в CSV — кнопка «Экспорт CSV» на вкладке «Расходы»
 - [ ] PWA и офлайн-режим
 
 ## Лицензия

@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Pencil } from "lucide-react";
+import { Download, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const BAR_COLORS: Record<ExpenseCategory, string> = {
@@ -127,7 +127,14 @@ export function ExpensesTab({ house }: { house: HouseApi }) {
 
       <div className="flex items-center justify-between">
         <h3 className="font-semibold">Журнал трат</h3>
-        <Button onClick={() => setAddOpen(true)}>+ Записать трату</Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <a href="/api/expenses/export" download aria-label="Скачать журнал трат в CSV">
+              <Download className="size-4" aria-hidden="true" /> Экспорт CSV
+            </a>
+          </Button>
+          <Button onClick={() => setAddOpen(true)}>+ Записать трату</Button>
+        </div>
       </div>
 
       <section
