@@ -67,6 +67,7 @@ export interface TaskDTO {
   status: TaskStatus;
   dueDate: string | null;
   completedAt: string | null;
+  repeatDays: number | null; // каждый N дней — регулярное дело, null — разовое
   createdAt: string;
   updatedAt: string;
   room?: RoomDTO | null;

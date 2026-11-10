@@ -26,6 +26,7 @@ export interface NewTaskInput {
   roomId: string | null;
   priority: TaskPriority;
   dueDate: string | null; // ISO
+  repeatDays?: number | null; // каждый N дней — регулярное дело, null/undefined — разовое
 }
 
 export interface NewExpenseInput {

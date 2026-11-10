@@ -13,6 +13,13 @@ const createSchema = z.object({
   priority: z.string().optional(),
   status: z.string().optional(),
   dueDate: z.string().nullable().optional(),
+  repeatDays: z
+    .number({ message: "Повтор должен быть числом дней" })
+    .int("Повтор — целое число дней")
+    .min(1, "Повтор — минимум один день")
+    .max(365, "Повтор — не чаще раза в год")
+    .nullable()
+    .optional(),
 });
 
 function parseDate(value: string | null | undefined): Date | null {
@@ -46,7 +53,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { title, roomId, priority, status, dueDate } = parsed.data;
+  const { title, roomId, priority, status, dueDate, repeatDays } = parsed.data;
 
   if (roomId) {
     const room = await db.room.findUnique({ where: { id: roomId } });
@@ -62,6 +69,7 @@ export async function POST(request: Request) {
       priority: isTaskPriority(priority) ? priority : "medium",
       status: isTaskStatus(status) && status !== "done" ? status : "todo",
       dueDate: parseDate(dueDate),
+      repeatDays: repeatDays ?? null,
     },
     include: { room: true },
   });

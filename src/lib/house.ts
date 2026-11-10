@@ -144,8 +144,8 @@ async function seedOnce(): Promise<void> {
     { title: "Помыть окна после дождей", roomId: roomId("Спальня"), priority: "low", status: "todo", dueDate: at(4) },
     { title: "Прочистить слив в ванне", roomId: roomId("Ванная"), priority: "high", status: "todo", dueDate: at(2) },
     { title: "Разобрать сезонную обувь", roomId: roomId("Прихожая"), priority: "medium", status: "doing", dueDate: at(5) },
-    { title: "Полить и обрезать цветы", roomId: roomId("Балкон"), priority: "low", status: "todo", dueDate: at(3) },
-    { title: "Сменить фильтр вытяжки", roomId: roomId("Кухня"), priority: "medium", status: "todo", dueDate: at(7) },
+    { title: "Полить и обрезать цветы", roomId: roomId("Балкон"), priority: "low", status: "todo", dueDate: at(3), repeatDays: 3 },
+    { title: "Сменить фильтр вытяжки", roomId: roomId("Кухня"), priority: "medium", status: "todo", dueDate: at(7), repeatDays: 30 },
     { title: "Протереть зеркала и стёкла", roomId: roomId("Ванная"), priority: "low", status: "todo", dueDate: at(6) },
     // В работе без срока
     { title: "Перебрать аптечку, выбросить просрочку", roomId: null, priority: "medium", status: "doing", dueDate: null },
@@ -165,6 +165,7 @@ async function seedOnce(): Promise<void> {
         status: t.status,
         dueDate: t.dueDate ?? null,
         completedAt: "completedAt" in t ? t.completedAt : null,
+        repeatDays: "repeatDays" in t ? t.repeatDays : null,
       },
     });
   }

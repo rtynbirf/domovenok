@@ -3,6 +3,7 @@ import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { PwaRegister } from "@/components/pwa-register";
 
 const inter = Inter({
   variable: "--font-geist-sans",
@@ -20,6 +21,17 @@ export const metadata: Metadata = {
     "Задачи, комнаты, расходы и индекс порядка дома в одном месте. Дом сияет, всё зелёное, без вопросов.",
   keywords: ["домашние дела", "уборка", "бюджет", "домашний бюджет", "домовёнок", "дом в порядке"],
   authors: [{ name: "Полимат-Универсум" }],
+  applicationName: "Домовёнок",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "Домовёнок", statusBarStyle: "default" },
+  formatDetection: { telephone: false },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
@@ -42,6 +54,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
           <Toaster position="top-center" richColors />
+          <PwaRegister />
         </ThemeProvider>
       </body>
     </html>

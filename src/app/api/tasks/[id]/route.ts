@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { computeNextDue, isRecurring } from "@/lib/recurring";
 import { isTaskPriority, isTaskStatus } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +13,13 @@ const patchSchema = z.object({
   priority: z.string().optional(),
   status: z.string().optional(),
   dueDate: z.string().nullable().optional(),
+  repeatDays: z
+    .number({ message: "Повтор должен быть числом дней" })
+    .int("Повтор — целое число дней")
+    .min(1, "Повтор — минимум один день")
+    .max(365, "Повтор — не чаще раза в год")
+    .nullable()
+    .optional(),
 });
 
 export async function PATCH(
@@ -47,6 +55,7 @@ export async function PATCH(
     status?: string;
     dueDate?: Date | null;
     completedAt?: Date | null;
+    repeatDays?: number | null;
   } = {};
 
   if (parsed.data.title !== undefined) data.title = parsed.data.title;
@@ -82,6 +91,10 @@ export async function PATCH(
     }
   }
 
+  if (parsed.data.repeatDays !== undefined) {
+    data.repeatDays = parsed.data.repeatDays;
+  }
+
   if (parsed.data.status !== undefined) {
     if (!isTaskStatus(parsed.data.status)) {
       return NextResponse.json({ error: "Неизвестный статус" }, { status: 400 });
@@ -93,13 +106,36 @@ export async function PATCH(
         : null;
   }
 
+  const now = new Date();
+  const statusBecameDone = parsed.data.status === "done" && existing.status !== "done";
+  // Какой интервал повтора действует после этого PATCH (учитываем правку в том же запросе)
+  const effectiveRepeat =
+    parsed.data.repeatDays !== undefined ? parsed.data.repeatDays : existing.repeatDays;
+
   const task = await db.task.update({
     where: { id },
     data,
     include: { room: true },
   });
 
-  return NextResponse.json({ task });
+  // Регулярное дело завершено — возникает следующее повторение, история остаётся.
+  let spawned: Awaited<ReturnType<typeof db.task.create>> | null = null;
+  if (statusBecameDone && isRecurring(effectiveRepeat)) {
+    const anchor = existing.dueDate ?? task.completedAt ?? now;
+    spawned = await db.task.create({
+      data: {
+        title: task.title,
+        roomId: task.roomId,
+        priority: task.priority,
+        status: "todo",
+        dueDate: computeNextDue(anchor, effectiveRepeat, now),
+        repeatDays: effectiveRepeat,
+      },
+      include: { room: true },
+    });
+  }
+
+  return NextResponse.json(spawned ? { task, spawned } : { task });
 }
 
 export async function DELETE(

@@ -3,8 +3,9 @@
 // Вкладка «Задачи»: быстрое добавление, фильтры, группировка и CRUD.
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Repeat } from "lucide-react";
 import { formatDay, isOverdue } from "@/lib/home-index";
+import { isRecurring, repeatLabel } from "@/lib/recurring";
 import { PRIORITY_LABELS, STATUS_LABELS, TASK_PRIORITIES } from "@/lib/types";
 import type { NewTaskInput } from "@/hooks/use-house";
 import type { HouseApi } from "@/hooks/use-house";
@@ -54,6 +55,7 @@ export function TasksTab({ house }: { house: HouseApi }) {
   const [quickRoom, setQuickRoom] = useState<string>("none");
   const [quickPriority, setQuickPriority] = useState<TaskPriority>("medium");
   const [quickDue, setQuickDue] = useState<string>("");
+  const [quickRepeat, setQuickRepeat] = useState<string>("");
   const [editing, setEditing] = useState<TaskDTO | null>(null);
 
   const filtered = useMemo(() => {
@@ -78,15 +80,21 @@ export function TasksTab({ house }: { house: HouseApi }) {
   async function submitQuick() {
     const title = quickTitle.trim();
     if (!title) return;
+    const parsedRepeat = Number(quickRepeat);
     const input: NewTaskInput = {
       title,
       roomId: quickRoom === "none" ? null : quickRoom,
       priority: quickPriority,
       dueDate: quickDue ? new Date(quickDue + "T09:00:00").toISOString() : null,
+      repeatDays:
+        quickRepeat.trim() && Number.isInteger(parsedRepeat) && parsedRepeat >= 1
+          ? Math.min(365, parsedRepeat)
+          : null,
     };
     await house.addTask(input);
     setQuickTitle("");
     setQuickDue("");
+    setQuickRepeat("");
     setQuickPriority("medium");
   }
 
@@ -95,7 +103,7 @@ export function TasksTab({ house }: { house: HouseApi }) {
       {/* Быстрое добавление */}
       <section aria-label="Быстрое добавление задачи" className="rounded-xl border bg-card p-4 md:p-6">
         <h3 className="mb-4 font-semibold">Добавить задачу</h3>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_180px_150px_160px_auto]">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_170px_140px_150px_110px_auto]">
           <Input
             value={quickTitle}
             onChange={(e) => setQuickTitle(e.target.value)}
@@ -133,6 +141,15 @@ export function TasksTab({ house }: { house: HouseApi }) {
             value={quickDue}
             onChange={(e) => setQuickDue(e.target.value)}
             aria-label="Срок"
+          />
+          <Input
+            type="number"
+            min={1}
+            max={365}
+            value={quickRepeat}
+            onChange={(e) => setQuickRepeat(e.target.value)}
+            placeholder="🔁 дн."
+            aria-label="Повтор в днях: пусто — разовое дело"
           />
           <Button onClick={submitQuick} disabled={!quickTitle.trim()}>
             Добавить
@@ -330,6 +347,14 @@ function TaskRow({
               <span aria-hidden="true">{room.emoji}</span> {room.name}
             </span>
           )}
+          {isRecurring(task.repeatDays) && (
+            <span
+              className="inline-flex items-center gap-1 text-sky-600 dark:text-sky-400"
+              title="Повторяющееся дело: после завершения появится снова"
+            >
+              <Repeat className="size-3" aria-hidden="true" /> {repeatLabel(task.repeatDays)}
+            </span>
+          )}
           <span className={cn(overdue && "font-semibold text-rose-600 dark:text-rose-400")}>
             {overdue ? "Просрочено: " : "Срок: "}
             {formatDay(task.dueDate)}
@@ -424,14 +449,20 @@ function EditTaskForm({
   const [priority, setPriority] = useState<TaskPriority>(task.priority);
   const [status, setStatus] = useState<TaskStatus>(task.status);
   const [due, setDue] = useState(task.dueDate ? task.dueDate.slice(0, 10) : "");
+  const [repeat, setRepeat] = useState(task.repeatDays ? String(task.repeatDays) : "");
 
   function save() {
+    const parsedRepeat = Number(repeat);
     const patch = {
       title: title.trim() || task.title,
       roomId: roomId === "none" ? null : roomId,
       priority,
       status,
       dueDate: due ? new Date(due + "T09:00:00").toISOString() : null,
+      repeatDays:
+        repeat.trim() && Number.isInteger(parsedRepeat) && parsedRepeat >= 1
+          ? Math.min(365, parsedRepeat)
+          : null,
     };
     void house.updateTask(task.id, patch);
     onClose();
@@ -494,6 +525,18 @@ function EditTaskForm({
           <Label htmlFor="edit-due">Срок</Label>
           <Input id="edit-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} />
         </div>
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="edit-repeat">Повтор (дней) — пусто для разового дела</Label>
+        <Input
+          id="edit-repeat"
+          type="number"
+          min={1}
+          max={365}
+          value={repeat}
+          onChange={(e) => setRepeat(e.target.value)}
+          placeholder="Например: 7 — каждую неделю"
+        />
       </div>
       <DialogFooter>
         <Button variant="outline" onClick={onClose}>
