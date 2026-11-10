@@ -86,8 +86,9 @@ export function useHouse() {
   }, []);
 
   useEffect(() => {
-    refresh();
-    refreshInventory();
+    // Первичная загрузка дома: bootstrap + инвентарь. Зовём из колбэка
+    // микрозадачи, а не синхронно из тела эффекта (react-hooks/set-state-in-effect).
+    queueMicrotask(() => void Promise.all([refresh(), refreshInventory()]));
   }, [refresh, refreshInventory]);
 
   const wrap = useCallback(
