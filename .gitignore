@@ -1,0 +1,33 @@
+# зависимости и сборка
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# окружение и секреты
+.env
+.env*.local
+
+# базы данных
+db/
+*.db
+*.db-journal
+
+# платформенные папки песочницы
+skills/
+examples/
+mini-services/
+.zscripts/
+download/
+upload/
+Caddyfile
+
+# логи
+*.log
+
+# служебное
+.DS_Store
+.idea/
+.vscode/

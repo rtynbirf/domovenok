@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Линт, типы, тесты и сборка
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: file:./ci.db
+    steps:
+      - name: Забрать код
+        uses: actions/checkout@v4
+
+      - name: Установить Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Установить зависимости
+        run: bun install --frozen-lockfile
+
+      - name: Сгенерировать Prisma Client
+        run: bunx prisma generate
+
+      - name: Линт
+        run: bun run lint
+
+      - name: Проверка типов
+        run: bun run typecheck
+
+      - name: Юнит-тесты
+        run: bun run test
+
+      - name: Подготовить базу для сборки
+        run: bunx prisma db push --accept-data-loss --skip-generate
+
+      - name: Сборка
+        run: bun run build
