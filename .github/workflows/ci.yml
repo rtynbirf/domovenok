@@ -31,6 +31,26 @@ jobs:
       - name: Установить зависимости
         run: bun install --frozen-lockfile
 
+      # Самолечение CI (prisma/orm#27754): bun-экстрактор на свежем рантнере может
+      # не положить wasm-base64-рантаймы @prisma/client. Диагноз фактом: если файлов
+      # нет — досыпаем их из тарбола той же версии реестра. Версия пиннута = <шаг не
+      # может подменить код; расхождение логируется строкой в лог.
+      - name: Гарантия рантайм-файлов Prisma (самолечение orm#27754)
+        run: |
+          D=node_modules/@prisma/client/runtime
+          V=$(node -p "require('./node_modules/@prisma/client/package.json').version")
+          if [ -f "$D/query_engine_bg.sqlite.wasm-base64.js" ]; then
+            echo "runtime-файлы на месте (client@$V) — самолечение не понадобилось"
+          else
+            echo "ОБНАРУЖЕН ДЕФЕКТ ЭКСТРАКЦИИ bun: досыпаем рантаймы из тарбола @prisma/client@$V"
+            T=$(npm pack "@prisma/client@$V" --pack-destination /tmp | tail -1)
+            rm -rf /tmp/pc-repair && mkdir -p /tmp/pc-repair
+            tar -xzf "/tmp/$T" -C /tmp/pc-repair package/runtime
+            cp /tmp/pc-repair/package/runtime/* "$D"/
+            echo "досыпано файлов: $(ls "$D" | wc -l)"
+          fi
+          test -f "$D/query_engine_bg.sqlite.wasm-base64.js"
+
       - name: Сгенерировать Prisma Client
         run: bunx prisma generate
 
