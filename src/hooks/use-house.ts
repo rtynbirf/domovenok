@@ -1,9 +1,15 @@
 "use client";
 
-// Центральный хук данных хозяйства: одна загрузка bootstrap + мутации с обновлением.
+// Центральный хук данных хозяйства: загрузка bootstrap + инвентаря, мутации с обновлением.
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { Bootstrap, ExpenseCategory, TaskPriority, TaskStatus } from "@/lib/types";
+import type {
+  Bootstrap,
+  ExpenseCategory,
+  InventoryItemDTO,
+  TaskPriority,
+  TaskStatus,
+} from "@/lib/types";
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -36,8 +42,21 @@ export interface NewExpenseInput {
   date: string | null; // ISO
 }
 
+export interface NewInventoryItemInput {
+  name: string;
+  category: string | null;
+  quantity: number;
+  unit: string; // «шт», «кг», «л», «уп»…
+  minQuantity: number | null; // порог «докупить», null — не следим
+  location: string | null; // место хранения
+  price: number | null;
+  purchaseDate: string | null; // ISO
+  receiptImage: string | null; // фото чека, data URL или null
+}
+
 export function useHouse() {
   const [data, setData] = useState<Bootstrap | null>(null);
+  const [inventory, setInventory] = useState<InventoryItemDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,15 +72,33 @@ export function useHouse() {
     }
   }, []);
 
+  // Инвентарь живёт отдельной выборкой: фото чеков тяжёлые, не тащим их в bootstrap.
+  const refreshInventory = useCallback(async () => {
+    try {
+      const fresh = await request<{ items: InventoryItemDTO[] }>("/api/inventory", {
+        cache: "no-store",
+      });
+      setInventory(fresh.items);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ошибка загрузки инвентаря");
+    }
+  }, []);
+
   useEffect(() => {
     refresh();
-  }, [refresh]);
+    refreshInventory();
+  }, [refresh, refreshInventory]);
 
   const wrap = useCallback(
-    async (fn: () => Promise<unknown>, successMessage?: string) => {
+    async (
+      fn: () => Promise<unknown>,
+      successMessage?: string,
+      refresher: () => Promise<void> = refresh,
+    ) => {
       try {
         await fn();
-        await refresh();
+        await refresher();
         if (successMessage) toast.success(successMessage);
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Ошибка операции");
@@ -171,11 +208,51 @@ export function useHouse() {
     [wrap],
   );
 
+  const addInventoryItem = useCallback(
+    (input: NewInventoryItemInput) =>
+      wrap(
+        () =>
+          request("/api/inventory", {
+            method: "POST",
+            body: JSON.stringify(input),
+          }),
+        "Вещь добавлена в инвентарь",
+        refreshInventory,
+      ),
+    [wrap, refreshInventory],
+  );
+
+  const updateInventoryItem = useCallback(
+    (id: string, patch: Partial<NewInventoryItemInput>) =>
+      wrap(
+        () =>
+          request(`/api/inventory/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify(patch),
+          }),
+        "Инвентарь обновлён",
+        refreshInventory,
+      ),
+    [wrap, refreshInventory],
+  );
+
+  const deleteInventoryItem = useCallback(
+    (id: string) =>
+      wrap(
+        () => request(`/api/inventory/${id}`, { method: "DELETE" }),
+        "Вещь удалена из инвентаря",
+        refreshInventory,
+      ),
+    [wrap, refreshInventory],
+  );
+
   return {
     data,
+    inventory,
     loading,
     error,
     refresh,
+    refreshInventory,
     addTask,
     updateTask,
     deleteTask,
@@ -185,6 +262,9 @@ export function useHouse() {
     addExpense,
     deleteExpense,
     saveBudget,
+    addInventoryItem,
+    updateInventoryItem,
+    deleteInventoryItem,
   };
 }
 

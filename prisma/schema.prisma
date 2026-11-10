@@ -60,3 +60,21 @@ model Setting {
   value     String
   updatedAt DateTime @updatedAt
 }
+
+// Вещь домашнего инвентаря: запасы, техника, инструменты.
+// unit — единица измерения («шт», «кг», «л», «уп»…).
+// minQuantity — если задан и quantity <= minQuantity, пора докупать.
+// receiptImage — фото чека в виде data URL (png/jpeg/webp), может отсутствовать.
+model InventoryItem {
+  id           String    @id @default(cuid())
+  name         String
+  category     String?
+  quantity     Float     @default(0)
+  unit         String    @default("шт")
+  minQuantity  Float?
+  location     String?
+  price        Float?
+  purchaseDate DateTime?
+  receiptImage String?
+  createdAt    DateTime  @default(now())
+}

@@ -82,6 +82,21 @@ export interface ExpenseDTO {
   createdAt: string;
 }
 
+// Вещь домашнего инвентаря (зеркало модели InventoryItem из Prisma)
+export interface InventoryItemDTO {
+  id: string;
+  name: string;
+  category: string | null;
+  quantity: number;
+  unit: string;
+  minQuantity: number | null; // порог «докупить», null — не следим
+  location: string | null; // место хранения
+  price: number | null;
+  purchaseDate: string | null;
+  receiptImage: string | null; // фото чека, data URL (png/jpeg/webp)
+  createdAt: string;
+}
+
 export interface HouseStats {
   homeIndex: number;
   openTasks: number;

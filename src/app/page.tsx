@@ -9,11 +9,13 @@ import { OverviewTab } from "@/components/home/overview-tab";
 import { TasksTab } from "@/components/home/tasks-tab";
 import { RoomsTab } from "@/components/home/rooms-tab";
 import { ExpensesTab } from "@/components/home/expenses-tab";
+import { InventoryTab } from "@/components/home/inventory-tab";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Moon, RefreshCw, Sun } from "lucide-react";
 import { homeIndexVerdict } from "@/lib/home-index";
+import { isLowStock } from "@/lib/inventory";
 
 export default function Home() {
   const house = useHouse();
@@ -22,6 +24,7 @@ export default function Home() {
 
   const stats = house.data?.stats;
   const verdict = stats ? homeIndexVerdict(stats.homeIndex) : null;
+  const lowStockCount = house.inventory.filter((i) => isLowStock(i.quantity, i.minQuantity)).length;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -79,7 +82,7 @@ export default function Home() {
           </div>
         ) : (
           <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="grid w-full max-w-xl grid-cols-4" aria-label="Разделы дома">
+            <TabsList className="grid w-full max-w-2xl grid-cols-5" aria-label="Разделы дома">
               <TabsTrigger value="overview">Обзор</TabsTrigger>
               <TabsTrigger value="tasks">
                 Задачи
@@ -91,6 +94,14 @@ export default function Home() {
               </TabsTrigger>
               <TabsTrigger value="rooms">Комнаты</TabsTrigger>
               <TabsTrigger value="expenses">Расходы</TabsTrigger>
+              <TabsTrigger value="inventory">
+                Инвентарь
+                {lowStockCount > 0 && (
+                  <Badge variant="secondary" className="ml-1.5 hidden sm:inline-flex">
+                    {lowStockCount}
+                  </Badge>
+                )}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="mt-6">
@@ -104,6 +115,9 @@ export default function Home() {
             </TabsContent>
             <TabsContent value="expenses" className="mt-6">
               <ExpensesTab house={house} />
+            </TabsContent>
+            <TabsContent value="inventory" className="mt-6">
+              <InventoryTab house={house} />
             </TabsContent>
           </Tabs>
         )}

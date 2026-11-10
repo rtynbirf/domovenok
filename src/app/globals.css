@@ -120,3 +120,19 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Тонкий скроллбар для длинных списков (инвентарь и будущие журналы) */
+.scroll-slim {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.scroll-slim::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-slim::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: var(--border);
+}
+.scroll-slim::-webkit-scrollbar-track {
+  background: transparent;
+}
