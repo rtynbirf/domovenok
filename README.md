@@ -9,7 +9,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma)](https://www.prisma.io)
 [![Bun](https://img.shields.io/badge/Bun-1.3-f472b6?logo=bun)](https://bun.sh)
-[![tests](https://img.shields.io/badge/tests-36%20passing-10b981)](../../actions)
+[![tests](https://img.shields.io/badge/tests-58%20passing-10b981)](../../actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
 ![Обзор дома](docs/screenshots/overview.png)
@@ -33,7 +33,8 @@
 | **Обзор** | Спидометр «Индекс порядка дома», ключевые счётчики, «Сегодня в фокусе», касса дома |
 | **Задачи** | Быстрое добавление, фильтры по статусу и комнате, просрочки, приоритеты, редактирование, 🔁 повторяшки |
 | **Комнаты** | Карточка каждой зоны: сколько открыто, сколько просрочено, «разобрано на N%», свой статус |
-| **Расходы** | Месячный бюджет, разбивка по категориям, журнал трат с удалением |
+| **Расходы** | Месячный бюджет, разбивка по категориям, журнал трат с удалением, экспорт в CSV |
+| **Инвентарь** | Вещи дома: место хранения, цена, дата покупки и фото чека; минимальный запас и бейдж «Докупить» |
 
 ### Индекс порядка дома
 
@@ -68,9 +69,13 @@
 | --- | --- |
 | ![Задачи](docs/screenshots/tasks.png) | ![Комнаты](docs/screenshots/rooms.png) |
 
-| Расходы | Тёмная тема |
+| Расходы | Инвентарь |
 | --- | --- |
-| ![Расходы](docs/screenshots/expenses.png) | ![Тёмная тема](docs/screenshots/dark-desktop.png) |
+| ![Расходы](docs/screenshots/expenses.png) | ![Инвентарь](docs/screenshots/inventory.png) |
+
+| Тёмная тема |
+| --- |
+| ![Тёмная тема](docs/screenshots/dark-desktop.png) |
 
 ## Стек
 
@@ -108,6 +113,7 @@ bun run dev          # http://localhost:3000
 | `bun run lint` | ESLint (конфиг Next.js 16) |
 | `bun run typecheck` | `tsc --noEmit`, strict |
 | `bun run test` | Vitest, юнит-тесты |
+| `bash scripts/smoke.sh` | Дымовая проверка живого дома: страницы, PWA, CSV, повторяшки |
 | `bun run db:push` | Схема Prisma → база |
 
 ## Структура
@@ -115,16 +121,17 @@ bun run dev          # http://localhost:3000
 ```
 src/
 ├── app/
-│   ├── api/               # bootstrap, tasks, rooms, expenses, settings
+│   ├── api/               # bootstrap, tasks, rooms, expenses, inventory, settings
 │   ├── layout.tsx         # Inter + Manrope (кириллица), темы, тосты
 │   └── page.tsx           # единственный экран приложения
 ├── components/
-│   ├── home/              # overview / tasks / rooms / expenses + спидометр
+│   ├── home/              # overview / tasks / rooms / expenses / inventory + спидометр
 │   └── ui/                # shadcn/ui
 ├── hooks/use-house.ts     # данные + мутации с авто-обновлением
 └── lib/
     ├── home-index.ts      # чистая логика индекса (под тестами)
     ├── recurring.ts       # чистая логика повторяшек (под тестами)
+    ├── inventory.ts       # чистая логика инвентаря (под тестами)
     ├── csv.ts             # чистая логика CSV-экспорта (под тестами)
     ├── house.ts           # сид и сводка по дому
     ├── types.ts           # справочники и DTO
@@ -134,7 +141,7 @@ public/
 ├── sw.js                  # service worker: офлайн-оболочка
 └── icons/                 # свои иконки дома (192/512/maskable/apple)
 tests/unit/                # Vitest
-prisma/schema.prisma       # Room / Task / Expense / Setting
+prisma/schema.prisma       # Room / Task / Expense / InventoryItem / Setting
 scripts/                   # make-icons, smoke-проверка дома
 .github/workflows/ci.yml   # lint → types → tests → build
 ```
@@ -151,6 +158,8 @@ scripts/                   # make-icons, smoke-проверка дома
 | GET/POST | `/api/expenses` | Список / добавление трат |
 | GET | `/api/expenses/export` | Журнал трат в CSV (Excel-дружелюбный: BOM + «;») |
 | DELETE | `/api/expenses/[id]` | Удаление траты |
+| GET/POST | `/api/inventory` | Список / добавление вещей (фото чека — data URL, ужимается на клиенте) |
+| PATCH/DELETE | `/api/inventory/[id]` | Правка / удаление; `receiptImage: null` убирает фото |
 | GET/PUT | `/api/settings` | Месячный бюджет |
 
 ## Устав дома 📜
@@ -168,7 +177,7 @@ scripts/                   # make-icons, smoke-проверка дома
 ## Дорожная карта
 
 - [x] Регулярные дела — 🔁 повторяшки: завершение рождает следующее повторение
-- [ ] Инвентарь дома с фото чеков
+- [x] Инвентарь дома с фото чеков — вещи, минимальный запас, место хранения и бейдж «Докупить»
 - [x] Экспорт расходов в CSV — кнопка «Экспорт CSV» на вкладке «Расходы»
 - [x] PWA и офлайн-режим — манифест, иконки, service worker
 
