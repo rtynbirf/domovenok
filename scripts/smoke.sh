@@ -26,7 +26,8 @@ CSV="$(curl -s "$BASE/api/expenses/export")"
 ok "CSV-экспорт живой (BOM + шапка)"
 
 # Повторяшка: завершаем задачу с repeatDays — должно родиться следующее повторение
-TASK_ID="$(curl -s "$BASE/api/tasks" | jq -r '[.tasks[] | select(.repeatDays != null)][0].id // empty')"
+# (берём повторяшку не в статусе done — дым можно запускать повторно)
+TASK_ID="$(curl -s "$BASE/api/tasks" | jq -r '[.tasks[] | select(.repeatDays != null and .status != "done")][0].id // empty')"
 [[ -n "$TASK_ID" ]] || fail "в доме нет повторяшек — сид не сработал"
 SPAWNED="$(curl -s -X PATCH "$BASE/api/tasks/$TASK_ID" \
   -H 'Content-Type: application/json' -d '{"status":"done"}' | jq -r '.spawned.id // empty')"
