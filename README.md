@@ -4,6 +4,15 @@
   <img src="banner.png" width="100%" alt="Штандарт domovenok: обсидиан и расплавленное золото, кузня rtynbirf" />
 </div>
 
+<!--ФОРЖ:МУЗА:НАЧАЛО-->
+<div align="center">
+  <img src="repo-muse.svg" width="100%" alt="Муза domovenok: картина кузни ПОЛИМАТ, раунд 9" />
+  <br/>
+  <img src="forge-divider.svg" width="62%" alt="разделитель кузни ПОЛИМАТ" />
+</div>
+<!--ФОРЖ:МУЗА:КОНЕЦ-->
+
+
 
 <div align="center">
 
@@ -189,3 +198,10 @@ scripts/                   # make-icons, smoke-проверка дома
 ## Лицензия
 
 [MIT](./LICENSE) — делайте с домом что хотите, главное — держите его в порядке.
+
+<!--ФОРЖ:ПОДВАЛ-->
+---
+
+<div align="center">
+  <sub>◆ картина и штандарт — ручная ковка <a href="https://github.com/rtynbirf">КУЗНИ ПОЛИМАТ</a> · ЧЕЛОВЕК=АККАУНТ=PID1 ◆</sub>
+</div>
