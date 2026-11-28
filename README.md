@@ -22,6 +22,18 @@
 | 142 | 31 | 1 | 2026-11-28 | 1 |
 <!--ФОРЖ:ПАСПОРТ:КОНЕЦ-->
 
+# domovenok
+
+<div align="center">
+
+<a href="https://github.com/rtynbirf/domovenok"><img src="banner.png" width="100%" alt="domovenok — штандарт мастерской в каноне ORNAMENTAL MYTHO-REALISM"></a>
+
+</div>
+
+
+
+
+
 # 🏠 Домовёнок
 
 <p align="center"><img src="https://cdn.jsdelivr.net/gh/rtynbirf/domovenok@main/.github/social-preview.png" alt="domovenok" width="100%"></p>
